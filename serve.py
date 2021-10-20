@@ -48,8 +48,8 @@ tokenizer = transformers.GPT2TokenizerFast.from_pretrained("gpt2")
 
 total_batch = per_replica_batch * jax.device_count() // cores_per_replica
 
- with jax.experimental.maps.mesh(devices, ('dp', 'mp')):
-        network = CausalTransformer(params)
+with jax.experimental.maps.mesh(devices, ('dp', 'mp')):
+    network = CausalTransformer(params)
 network.state =  read_ckpt(network.state, f"gs://codegenx-data/checkpoints_slim/step_57317/", devices.shape[1])
 del network.state["opt_state"]
 network.state = network.move_xmap(network.state, np.zeros(cores_per_replica))

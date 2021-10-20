@@ -42,15 +42,14 @@ params["optimizer"] = optax.scale(0)
 mesh_shape = (jax.device_count() // cores_per_replica, cores_per_replica)
 devices = np.array(jax.devices()).reshape(mesh_shape)
 
-#maps.thread_resources.env = maps.ResourceEnv(maps.Mesh(devices, ("dp", "mp")))
+maps.thread_resources.env = maps.ResourceEnv(maps.Mesh(devices, ("dp", "mp")))
 
 tokenizer = transformers.GPT2TokenizerFast.from_pretrained("gpt2")
 
 total_batch = per_replica_batch * jax.device_count() // cores_per_replica
 
-with jax.experimental.maps.mesh(devices, ('dp', 'mp')):
-    network = CausalTransformer(params)
-network.state =  read_ckpt(network.state, f"gs://codegenx-data/checkpoints_slim/step_57317/", devices.shape[1])
+network = CausalTransformer(params)
+network.state = read_ckpt(network.state, "./step_57317/", devices.shape[1])
 del network.state["opt_state"]
 network.state = network.move_xmap(network.state, np.zeros(cores_per_replica))
 
